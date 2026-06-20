@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../destinations/widgets/destination_route_text.dart';
 import '../providers/trip_providers.dart';
 
 /// Trip Detail / Overview (plan §9, §10). Hub that links to each module.
@@ -55,6 +56,8 @@ class TripDetailScreen extends ConsumerWidget {
                       color: AppColors.secondaryText,
                     ),
               ),
+              const SizedBox(height: 8),
+              DestinationRouteText(tripId: tripId, maxLines: 2),
               const SizedBox(height: 24),
               ..._modules.map(
                 (m) => _ModuleTile(

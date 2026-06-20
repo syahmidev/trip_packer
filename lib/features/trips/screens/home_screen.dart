@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../destinations/widgets/destination_route_text.dart';
 import '../providers/trip_providers.dart';
 
 /// Home screen — lists all trips (plan §9, §15).
@@ -134,6 +135,8 @@ class _TripCard extends StatelessWidget {
                       color: AppColors.secondaryText,
                     ),
               ),
+              const SizedBox(height: 8),
+              DestinationRouteText(tripId: trip.id),
               const SizedBox(height: 12),
               Text(
                 '${money.format(trip.estimatedBudget)} planned',
