@@ -11,6 +11,7 @@ import '../../../core/utils/budget_calculator.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/entrance_fade.dart';
+import '../../../core/widgets/swipe_to_delete.dart';
 import '../../trips/providers/trip_providers.dart';
 import '../providers/budget_providers.dart';
 import '../widgets/expense_form_sheet.dart';
@@ -110,7 +111,9 @@ class BudgetScreen extends ConsumerWidget {
                       expense: e,
                       baseCurrency: trip.baseCurrency,
                       onEdit: () => _editExpense(context, ref, trip, e),
-                      onDelete: () => _deleteExpense(context, ref, e),
+                      onDelete: () => ref
+                          .read(budgetRepositoryProvider)
+                          .deleteExpense(e.id),
                     ),
                   ),
             ],
@@ -182,32 +185,6 @@ class BudgetScreen extends ConsumerWidget {
             date: result.date,
           ),
         );
-  }
-
-  Future<void> _deleteExpense(
-    BuildContext context,
-    WidgetRef ref,
-    Expense expense,
-  ) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete expense?'),
-        content: Text('Remove "${expense.title}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    await ref.read(budgetRepositoryProvider).deleteExpense(expense.id);
   }
 
   Future<void> _editPlanned(
@@ -480,31 +457,27 @@ class _ExpenseTile extends StatelessWidget {
         ? '${expense.currency} ${expense.amount.toStringAsFixed(2)}'
         : null;
 
-    return AppCard(
+    return SwipeToDelete(
+      itemKey: ValueKey(expense.id),
+      onDelete: onDelete,
       margin: const EdgeInsets.only(bottom: 10),
-      padding: EdgeInsets.zero,
-      child: ListTile(
-        title: Text(
-          expense.title,
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
-        subtitle: Text(
-          '${expense.category}  •  ${df.format(expense.date)}'
-          '${paidText == null ? '' : '  •  paid $paidText'}',
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(baseText, style: const TextStyle(fontWeight: FontWeight.w700)),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, size: 20),
-              onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit')),
-                PopupMenuItem(value: 'delete', child: Text('Delete')),
-              ],
-            ),
-          ],
+      child: AppCard(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: EdgeInsets.zero,
+        onTap: onEdit,
+        child: ListTile(
+          title: Text(
+            expense.title,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          subtitle: Text(
+            '${expense.category}  •  ${df.format(expense.date)}'
+            '${paidText == null ? '' : '  •  paid $paidText'}',
+          ),
+          trailing: Text(
+            baseText,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
         ),
       ),
     );

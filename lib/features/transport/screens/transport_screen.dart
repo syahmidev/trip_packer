@@ -10,6 +10,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/entrance_fade.dart';
+import '../../../core/widgets/swipe_to_delete.dart';
 import '../../trips/providers/trip_providers.dart';
 import '../providers/transport_providers.dart';
 import '../widgets/transport_form_sheet.dart';
@@ -61,7 +62,9 @@ class TransportScreen extends ConsumerWidget {
               child: _TransportCard(
                 transport: list[i],
                 onEdit: () => _openForm(context, ref, existing: list[i]),
-                onDelete: () => _confirmDelete(context, ref, list[i]),
+                onDelete: () => ref
+                    .read(transportRepositoryProvider)
+                    .deleteTransport(list[i].id),
               ),
             ),
           );
@@ -117,32 +120,6 @@ class TransportScreen extends ConsumerWidget {
       );
     }
   }
-
-  Future<void> _confirmDelete(
-    BuildContext context,
-    WidgetRef ref,
-    Transport t,
-  ) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete transport?'),
-        content: Text('Remove ${t.type} ${t.from} → ${t.to}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    await ref.read(transportRepositoryProvider).deleteTransport(t.id);
-  }
 }
 
 class _TransportCard extends StatelessWidget {
@@ -162,75 +139,73 @@ class _TransportCard extends StatelessWidget {
     final t = DateFormat('HH:mm');
     final hasCost = transport.cost > 0;
 
-    return AppCard(
-      padding: const EdgeInsets.fromLTRB(14, 14, 6, 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppIconChip(icon: _iconFor(transport.type)),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${transport.from} → ${transport.to}',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
+    return SwipeToDelete(
+      itemKey: ValueKey(transport.id),
+      onDelete: onDelete,
+      child: AppCard(
+        onTap: onEdit,
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppIconChip(icon: _iconFor(transport.type)),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${transport.from} → ${transport.to}',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
                       ),
-                    ),
-                    _TypePill(label: transport.type),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  dt.format(transport.departureDateTime) +
-                      (transport.arrivalDateTime == null
-                          ? ''
-                          : '  →  ${t.format(transport.arrivalDateTime!)}'),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.cSecondaryText,
+                      _TypePill(label: transport.type),
+                    ],
                   ),
-                ),
-                if (hasCost || transport.bookingReference != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    [
-                      if (hasCost)
-                        NumberFormat.currency(
-                          symbol: '',
-                          decimalDigits: 0,
-                        ).format(transport.cost),
-                      if (transport.bookingReference != null)
-                        'Ref: ${transport.bookingReference}',
-                    ].join('  •  '),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-                if (transport.notes != null && transport.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    transport.notes!,
+                    dt.format(transport.departureDateTime) +
+                        (transport.arrivalDateTime == null
+                            ? ''
+                            : '  →  ${t.format(transport.arrivalDateTime!)}'),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: context.cSecondaryText,
                     ),
                   ),
+                  if (hasCost || transport.bookingReference != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      [
+                        if (hasCost)
+                          NumberFormat.currency(
+                            symbol: '',
+                            decimalDigits: 0,
+                          ).format(transport.cost),
+                        if (transport.bookingReference != null)
+                          'Ref: ${transport.bookingReference}',
+                      ].join('  •  '),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                  if (transport.notes != null &&
+                      transport.notes!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      transport.notes!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: context.cSecondaryText,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'edit', child: Text('Edit')),
-              PopupMenuItem(value: 'delete', child: Text('Delete')),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

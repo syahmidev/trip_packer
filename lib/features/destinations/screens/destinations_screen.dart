@@ -159,6 +159,7 @@ class _DestinationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
+      onTap: onEdit,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: ListTile(
         leading: Container(
@@ -187,11 +188,6 @@ class _DestinationTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 20),
-              tooltip: 'Edit',
-              onPressed: onEdit,
-            ),
-            IconButton(
               icon: const Icon(Icons.delete_outline, size: 20),
               tooltip: 'Remove',
               onPressed: onDelete,
@@ -199,7 +195,7 @@ class _DestinationTile extends StatelessWidget {
             ReorderableDragStartListener(
               index: position - 1,
               child: Padding(
-                padding: const EdgeInsets.only(left: 4),
+                padding: const EdgeInsets.only(left: 4, right: 4),
                 child: Icon(Icons.drag_handle, color: context.cSecondaryText),
               ),
             ),

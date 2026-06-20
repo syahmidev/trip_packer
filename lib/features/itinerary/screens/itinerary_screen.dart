@@ -182,20 +182,26 @@ class _DaySection extends ConsumerWidget {
                   ),
                 ),
               ],
-              const SizedBox(height: 8),
               activities.maybeWhen(
                 data: (acts) => Column(
                   children: [
-                    for (final a in acts)
+                    if (acts.isNotEmpty)
+                      Divider(height: 20, color: context.cBorder),
+                    for (final (i, a) in acts.indexed)
                       _ActivityTile(
                         activity: a,
+                        isFirst: i == 0,
+                        isLast: i == acts.length - 1,
                         onEdit: () => _editActivity(context, ref, a),
-                        onDelete: () => _deleteActivity(context, ref, a),
+                        onDelete: () => ref
+                            .read(itineraryRepositoryProvider)
+                            .deleteActivity(a.id),
                       ),
                   ],
                 ),
                 orElse: () => const SizedBox.shrink(),
               ),
+              const SizedBox(height: 4),
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
@@ -289,36 +295,28 @@ class _DaySection extends ConsumerWidget {
           ),
         );
   }
-
-  Future<void> _deleteActivity(
-    BuildContext context,
-    WidgetRef ref,
-    Activity activity,
-  ) async {
-    final ok = await _confirm(
-      context,
-      title: 'Delete activity?',
-      message: 'Remove "${activity.title}"?',
-      confirmLabel: 'Delete',
-    );
-    if (!ok) return;
-    await ref.read(itineraryRepositoryProvider).deleteActivity(activity.id);
-  }
 }
 
+/// A single activity rendered as a timeline row: time column, a connecting
+/// rail with a dot, then tap-to-edit content. Swipe left to delete.
 class _ActivityTile extends StatelessWidget {
   const _ActivityTile({
     required this.activity,
+    required this.isFirst,
+    required this.isLast,
     required this.onEdit,
     required this.onDelete,
   });
 
   final Activity activity;
+  final bool isFirst;
+  final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final timed = activity.time != null;
     final subtitleParts = <String>[
       if (activity.location != null && activity.location!.isNotEmpty)
         activity.location!,
@@ -329,47 +327,117 @@ class _ActivityTile extends StatelessWidget {
         ).format(activity.estimatedCost),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 56,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(
-                formatActivityTime(context, activity.time),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.warmAccent,
-                  fontWeight: FontWeight.w700,
+    return Dismissible(
+      key: ValueKey(activity.id),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => onDelete(),
+      background: Container(
+        alignment: Alignment.centerRight,
+        margin: const EdgeInsets.only(bottom: 4),
+        padding: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: AppColors.danger.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(
+          Icons.delete_outline,
+          color: Color(0xFFFFFFFF),
+          size: 20,
+        ),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 50,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  formatActivityTime(context, activity.time),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: timed
+                        ? AppColors.warmAccent
+                        : context.cSecondaryText,
+                    fontWeight: timed ? FontWeight.w700 : FontWeight.w500,
+                  ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(activity.title),
-                if (subtitleParts.isNotEmpty)
-                  Text(
-                    subtitleParts.join('  •  '),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: context.cSecondaryText,
-                    ),
+            _Rail(isFirst: isFirst, isLast: isLast),
+            Expanded(
+              child: InkWell(
+                onTap: onEdit,
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 8, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        activity.title,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      if (subtitleParts.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitleParts.join('  •  '),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: context.cSecondaryText),
+                        ),
+                      ],
+                    ],
                   ),
-              ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Vertical timeline rail with a dot, connecting consecutive activities.
+class _Rail extends StatelessWidget {
+  const _Rail({required this.isFirst, required this.isLast});
+
+  final bool isFirst;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final line = context.cBorder;
+    return SizedBox(
+      width: 20,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: 12,
+            child: Center(
+              child: Container(
+                width: 2,
+                color: isFirst ? Colors.transparent : line,
+              ),
             ),
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_horiz, size: 18),
-            padding: EdgeInsets.zero,
-            onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'edit', child: Text('Edit')),
-              PopupMenuItem(value: 'delete', child: Text('Delete')),
-            ],
+          Container(
+            width: 11,
+            height: 11,
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.primaryAccent, width: 2.5),
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: Container(
+                width: 2,
+                color: isLast ? Colors.transparent : line,
+              ),
+            ),
           ),
         ],
       ),
