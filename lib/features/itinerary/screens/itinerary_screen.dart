@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/entrance_fade.dart';
 import '../../trips/providers/trip_providers.dart';
 import '../providers/itinerary_providers.dart';
 import '../widgets/activity_form_sheet.dart';
@@ -56,8 +57,14 @@ class ItineraryScreen extends ConsumerWidget {
           return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 4),
             itemCount: list.length,
-            itemBuilder: (context, i) =>
-                _DaySection(tripId: tripId, day: list[i], dayNumber: i + 1),
+            itemBuilder: (context, i) => EntranceFade(
+              index: i,
+              child: _DaySection(
+                tripId: tripId,
+                day: list[i],
+                dayNumber: i + 1,
+              ),
+            ),
           );
         },
       ),

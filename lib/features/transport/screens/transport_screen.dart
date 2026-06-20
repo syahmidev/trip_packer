@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/entrance_fade.dart';
 import '../../trips/providers/trip_providers.dart';
 import '../providers/transport_providers.dart';
 import '../widgets/transport_form_sheet.dart';
@@ -55,10 +56,13 @@ class TransportScreen extends ConsumerWidget {
           return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 4),
             itemCount: list.length,
-            itemBuilder: (context, i) => _TransportCard(
-              transport: list[i],
-              onEdit: () => _openForm(context, ref, existing: list[i]),
-              onDelete: () => _confirmDelete(context, ref, list[i]),
+            itemBuilder: (context, i) => EntranceFade(
+              index: i,
+              child: _TransportCard(
+                transport: list[i],
+                onEdit: () => _openForm(context, ref, existing: list[i]),
+                onDelete: () => _confirmDelete(context, ref, list[i]),
+              ),
             ),
           );
         },

@@ -10,6 +10,7 @@ import '../../../core/theme/app_gradients.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/entrance_fade.dart';
 import '../../destinations/widgets/destination_route_text.dart';
 import '../providers/trip_providers.dart';
 
@@ -60,7 +61,10 @@ class HomeScreen extends ConsumerWidget {
                 return ListView.builder(
                   padding: const EdgeInsets.only(top: 4, bottom: 16),
                   itemCount: list.length,
-                  itemBuilder: (context, i) => _TripCard(trip: list[i]),
+                  itemBuilder: (context, i) => EntranceFade(
+                    index: i,
+                    child: _TripCard(trip: list[i]),
+                  ),
                 );
               },
             ),

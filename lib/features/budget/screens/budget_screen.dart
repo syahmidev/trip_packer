@@ -10,6 +10,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/budget_calculator.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/entrance_fade.dart';
 import '../../trips/providers/trip_providers.dart';
 import '../providers/budget_providers.dart';
 import '../widgets/expense_form_sheet.dart';
@@ -102,12 +103,15 @@ class BudgetScreen extends ConsumerWidget {
                   ),
                 )
               else
-                for (final e in expenses)
-                  _ExpenseTile(
-                    expense: e,
-                    baseCurrency: trip.baseCurrency,
-                    onEdit: () => _editExpense(context, ref, trip, e),
-                    onDelete: () => _deleteExpense(context, ref, e),
+                for (final (i, e) in expenses.indexed)
+                  EntranceFade(
+                    index: i,
+                    child: _ExpenseTile(
+                      expense: e,
+                      baseCurrency: trip.baseCurrency,
+                      onEdit: () => _editExpense(context, ref, trip, e),
+                      onDelete: () => _deleteExpense(context, ref, e),
+                    ),
                   ),
             ],
           );

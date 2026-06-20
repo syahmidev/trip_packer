@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_gradients.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/entrance_fade.dart';
 import '../../destinations/widgets/destination_route_text.dart';
 import '../providers/trip_providers.dart';
 
@@ -59,12 +60,15 @@ class TripDetailScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              ..._modules.map(
-                (m) => _ModuleTile(
-                  icon: m.icon,
-                  label: m.label,
-                  subtitle: m.subtitle,
-                  onTap: () => context.push('/trips/$tripId/${m.path}'),
+              ..._modules.indexed.map(
+                (e) => EntranceFade(
+                  index: e.$1,
+                  child: _ModuleTile(
+                    icon: e.$2.icon,
+                    label: e.$2.label,
+                    subtitle: e.$2.subtitle,
+                    onTap: () => context.push('/trips/$tripId/${e.$2.path}'),
+                  ),
                 ),
               ),
             ],
