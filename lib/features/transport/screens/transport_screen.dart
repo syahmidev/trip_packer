@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../trips/providers/trip_providers.dart';
 import '../providers/transport_providers.dart';
 import '../widgets/transport_form_sheet.dart';
 
@@ -67,10 +68,15 @@ class TransportScreen extends ConsumerWidget {
     WidgetRef ref, {
     Transport? existing,
   }) async {
+    final trip = ref.read(tripProvider(tripId)).valueOrNull;
     final result = await showModalBottomSheet<TransportFormResult>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => TransportFormSheet(existing: existing),
+      builder: (_) => TransportFormSheet(
+        existing: existing,
+        tripStart: trip?.startDate,
+        tripEnd: trip?.endDate,
+      ),
     );
     if (result == null) return;
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
+import '../../../core/utils/date_utils.dart';
 
 /// Result returned from [AccommodationFormSheet] when the user saves.
 class AccommodationFormResult {
@@ -26,10 +27,20 @@ class AccommodationFormResult {
 
 /// Bottom-sheet form to add or edit an accommodation booking (plan Phase 8).
 class AccommodationFormSheet extends StatefulWidget {
-  const AccommodationFormSheet({this.existing, this.initialDate, super.key});
+  const AccommodationFormSheet({
+    this.existing,
+    this.initialDate,
+    this.tripStart,
+    this.tripEnd,
+    super.key,
+  });
 
   final Accommodation? existing;
   final DateTime? initialDate;
+
+  /// Optional trip bounds; when set the check-in picker is limited to this range.
+  final DateTime? tripStart;
+  final DateTime? tripEnd;
 
   @override
   State<AccommodationFormSheet> createState() => _AccommodationFormSheetState();
@@ -57,7 +68,8 @@ class _AccommodationFormSheetState extends State<AccommodationFormSheet> {
     _refController = TextEditingController(text: a?.bookingReference);
     _notesController = TextEditingController(text: a?.notes);
     final base = widget.initialDate ?? DateTime.now();
-    _checkIn = a?.checkIn ?? base;
+    _checkIn = AppDateUtils.clamp(a?.checkIn ?? base,
+        min: widget.tripStart, max: widget.tripEnd);
     _checkOut = a?.checkOut ?? _checkIn.add(const Duration(days: 1));
   }
 
@@ -78,8 +90,8 @@ class _AccommodationFormSheetState extends State<AccommodationFormSheet> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _checkIn,
-      firstDate: DateTime(_checkIn.year - 2),
-      lastDate: DateTime(_checkIn.year + 5),
+      firstDate: widget.tripStart ?? DateTime(_checkIn.year - 2),
+      lastDate: widget.tripEnd ?? DateTime(_checkIn.year + 5),
     );
     if (picked == null) return;
     setState(() {

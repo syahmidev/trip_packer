@@ -131,7 +131,11 @@ class BudgetScreen extends ConsumerWidget {
     final result = await showModalBottomSheet<ExpenseFormResult>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => ExpenseFormSheet(baseCurrency: trip.baseCurrency),
+      builder: (_) => ExpenseFormSheet(
+        baseCurrency: trip.baseCurrency,
+        tripStart: trip.startDate,
+        tripEnd: trip.endDate,
+      ),
     );
     if (result == null) return;
     await ref.read(budgetRepositoryProvider).addExpense(
@@ -156,8 +160,12 @@ class BudgetScreen extends ConsumerWidget {
     final result = await showModalBottomSheet<ExpenseFormResult>(
       context: context,
       isScrollControlled: true,
-      builder: (_) =>
-          ExpenseFormSheet(baseCurrency: trip.baseCurrency, existing: expense),
+      builder: (_) => ExpenseFormSheet(
+        baseCurrency: trip.baseCurrency,
+        existing: expense,
+        tripStart: trip.startDate,
+        tripEnd: trip.endDate,
+      ),
     );
     if (result == null) return;
     await ref.read(budgetRepositoryProvider).updateExpense(

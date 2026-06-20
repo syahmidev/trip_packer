@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../trips/providers/trip_providers.dart';
 import '../providers/accommodation_providers.dart';
 import '../widgets/accommodation_form_sheet.dart';
 
@@ -67,10 +68,15 @@ class AccommodationScreen extends ConsumerWidget {
     WidgetRef ref, {
     Accommodation? existing,
   }) async {
+    final trip = ref.read(tripProvider(tripId)).valueOrNull;
     final result = await showModalBottomSheet<AccommodationFormResult>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => AccommodationFormSheet(existing: existing),
+      builder: (_) => AccommodationFormSheet(
+        existing: existing,
+        tripStart: trip?.startDate,
+        tripEnd: trip?.endDate,
+      ),
     );
     if (result == null) return;
 

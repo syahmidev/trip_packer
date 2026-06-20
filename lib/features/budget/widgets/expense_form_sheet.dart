@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/constants/categories.dart';
 import '../../../core/database/app_database.dart';
+import '../../../core/utils/date_utils.dart';
 
 /// Result returned from [ExpenseFormSheet] when the user saves.
 class ExpenseFormResult {
@@ -32,11 +33,17 @@ class ExpenseFormSheet extends StatefulWidget {
   const ExpenseFormSheet({
     required this.baseCurrency,
     this.existing,
+    this.tripStart,
+    this.tripEnd,
     super.key,
   });
 
   final String baseCurrency;
   final Expense? existing;
+
+  /// Optional trip bounds; when set the date picker is limited to this range.
+  final DateTime? tripStart;
+  final DateTime? tripEnd;
 
   @override
   State<ExpenseFormSheet> createState() => _ExpenseFormSheetState();
@@ -66,7 +73,8 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
     );
     _category = e?.category ?? AppCategories.expense.first;
     _currency = e?.currency ?? widget.baseCurrency;
-    _date = e?.date ?? DateTime.now();
+    _date = AppDateUtils.clamp(e?.date ?? DateTime.now(),
+        min: widget.tripStart, max: widget.tripEnd);
   }
 
   static String _trim(double v) =>
@@ -92,8 +100,8 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _date,
-      firstDate: DateTime(_date.year - 2),
-      lastDate: DateTime(_date.year + 5),
+      firstDate: widget.tripStart ?? DateTime(_date.year - 2),
+      lastDate: widget.tripEnd ?? DateTime(_date.year + 5),
     );
     if (picked != null) setState(() => _date = picked);
   }

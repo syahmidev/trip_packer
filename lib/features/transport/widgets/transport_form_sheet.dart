@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/constants/categories.dart';
 import '../../../core/database/app_database.dart';
+import '../../../core/utils/date_utils.dart';
 
 /// Result returned from [TransportFormSheet] when the user saves.
 class TransportFormResult {
@@ -29,10 +30,20 @@ class TransportFormResult {
 
 /// Bottom-sheet form to add or edit a transport leg (plan Phase 7).
 class TransportFormSheet extends StatefulWidget {
-  const TransportFormSheet({this.existing, this.initialDate, super.key});
+  const TransportFormSheet({
+    this.existing,
+    this.initialDate,
+    this.tripStart,
+    this.tripEnd,
+    super.key,
+  });
 
   final Transport? existing;
   final DateTime? initialDate;
+
+  /// Optional trip bounds; when set the date pickers are limited to this range.
+  final DateTime? tripStart;
+  final DateTime? tripEnd;
 
   @override
   State<TransportFormSheet> createState() => _TransportFormSheetState();
@@ -62,9 +73,11 @@ class _TransportFormSheetState extends State<TransportFormSheet> {
     _refController = TextEditingController(text: t?.bookingReference);
     _notesController = TextEditingController(text: t?.notes);
     _type = t?.type ?? AppCategories.transportTypes.first;
-    _departure = t?.departureDateTime ??
+    final departure = t?.departureDateTime ??
         widget.initialDate ??
         DateTime.now().copyWith(minute: 0, second: 0, millisecond: 0, microsecond: 0);
+    _departure = AppDateUtils.clamp(departure,
+        min: widget.tripStart, max: widget.tripEnd);
     _arrival = t?.arrivalDateTime;
   }
 
@@ -84,9 +97,10 @@ class _TransportFormSheetState extends State<TransportFormSheet> {
   Future<DateTime?> _pickDateTime(DateTime initial) async {
     final date = await showDatePicker(
       context: context,
-      initialDate: initial,
-      firstDate: DateTime(initial.year - 2),
-      lastDate: DateTime(initial.year + 5),
+      initialDate: AppDateUtils.clamp(initial,
+          min: widget.tripStart, max: widget.tripEnd),
+      firstDate: widget.tripStart ?? DateTime(initial.year - 2),
+      lastDate: widget.tripEnd ?? DateTime(initial.year + 5),
     );
     if (date == null || !mounted) return null;
     final time = await showTimePicker(

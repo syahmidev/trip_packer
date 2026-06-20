@@ -69,10 +69,15 @@ class ItineraryScreen extends ConsumerWidget {
     WidgetRef ref,
     List<ItineraryDay> existing,
   ) async {
+    final trip = ref.read(tripProvider(tripId)).valueOrNull;
     final result = await showModalBottomSheet<DayFormResult>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => DayFormSheet(initialDate: _nextOpenDate(ref, existing)),
+      builder: (_) => DayFormSheet(
+        initialDate: _nextOpenDate(ref, existing),
+        tripStart: trip?.startDate,
+        tripEnd: trip?.endDate,
+      ),
     );
     if (result == null) return;
     await ref.read(itineraryRepositoryProvider).addDay(
@@ -204,10 +209,15 @@ class _DaySection extends ConsumerWidget {
   }
 
   Future<void> _editDay(BuildContext context, WidgetRef ref) async {
+    final trip = ref.read(tripProvider(tripId)).valueOrNull;
     final result = await showModalBottomSheet<DayFormResult>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => DayFormSheet(existing: day),
+      builder: (_) => DayFormSheet(
+        existing: day,
+        tripStart: trip?.startDate,
+        tripEnd: trip?.endDate,
+      ),
     );
     if (result == null) return;
     await ref.read(itineraryRepositoryProvider).updateDay(

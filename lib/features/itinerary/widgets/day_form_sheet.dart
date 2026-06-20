@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
+import '../../../core/utils/date_utils.dart';
 
 /// Result returned from [DayFormSheet] when the user saves.
 class DayFormResult {
@@ -14,12 +15,22 @@ class DayFormResult {
 
 /// Bottom-sheet form to add or edit an itinerary day (plan Phase 5).
 class DayFormSheet extends StatefulWidget {
-  const DayFormSheet({this.existing, this.initialDate, super.key});
+  const DayFormSheet({
+    this.existing,
+    this.initialDate,
+    this.tripStart,
+    this.tripEnd,
+    super.key,
+  });
 
   final ItineraryDay? existing;
 
   /// Date the picker opens on when adding (typically the trip's next open day).
   final DateTime? initialDate;
+
+  /// Optional trip bounds; when set the date picker is limited to this range.
+  final DateTime? tripStart;
+  final DateTime? tripEnd;
 
   @override
   State<DayFormSheet> createState() => _DayFormSheetState();
@@ -36,7 +47,10 @@ class _DayFormSheetState extends State<DayFormSheet> {
     super.initState();
     _titleController = TextEditingController(text: widget.existing?.title);
     _notesController = TextEditingController(text: widget.existing?.notes);
-    _date = widget.existing?.date ?? widget.initialDate ?? DateTime.now();
+    final initial =
+        widget.existing?.date ?? widget.initialDate ?? DateTime.now();
+    _date = AppDateUtils.clamp(initial,
+        min: widget.tripStart, max: widget.tripEnd);
   }
 
   @override
@@ -50,8 +64,8 @@ class _DayFormSheetState extends State<DayFormSheet> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _date,
-      firstDate: DateTime(_date.year - 2),
-      lastDate: DateTime(_date.year + 5),
+      firstDate: widget.tripStart ?? DateTime(_date.year - 2),
+      lastDate: widget.tripEnd ?? DateTime(_date.year + 5),
     );
     if (picked != null) setState(() => _date = picked);
   }
