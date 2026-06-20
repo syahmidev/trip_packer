@@ -91,55 +91,103 @@ class _TripCard extends StatelessWidget {
       decimalDigits: 0,
     );
 
+    final initial = trip.title.trim().isEmpty
+        ? '?'
+        : trip.title.trim()[0].toUpperCase();
+
     return AppCard(
       onTap: () => context.push('/trips/${trip.id}'),
-      padding: const EdgeInsets.all(18),
-      child: Column(
+      padding: const EdgeInsets.all(16),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            trip.title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                size: 14,
-                color: context.cSecondaryText,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                range,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: context.cSecondaryText),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          DestinationRouteText(tripId: trip.id),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.primaryAccent.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              '${money.format(trip.estimatedBudget)} planned',
-              style: const TextStyle(
-                color: AppColors.primaryAccent,
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-              ),
+          _GradientAvatar(letter: initial),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  trip.title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: context.cSecondaryText,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      range,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: context.cSecondaryText,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                DestinationRouteText(tripId: trip.id),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${money.format(trip.estimatedBudget)} planned',
+                    style: const TextStyle(
+                      color: AppColors.primaryAccent,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Rounded gradient tile showing a trip's initial — stands in for cover imagery.
+class _GradientAvatar extends StatelessWidget {
+  const _GradientAvatar({required this.letter});
+
+  final String letter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 52,
+      height: 52,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF357A72), Color(0xFF1E4A45)],
+        ),
+      ),
+      child: Text(
+        letter,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+          fontSize: 22,
+        ),
       ),
     );
   }

@@ -28,6 +28,7 @@ class AppScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return FScaffold(
       header: FHeader.nested(
+        titleAlignment: AlignmentDirectional.centerStart,
         title: Text(title),
         prefixes: [
           if (showBack) FHeaderAction.back(onPress: () => context.pop()),

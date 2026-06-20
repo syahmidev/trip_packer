@@ -10,12 +10,37 @@ import 'app_colors.dart';
 /// Material [ThemeData] is kept in sync so any Material widgets used during the
 /// build (e.g. [TextFormField]) inherit the same warm palette and typography.
 abstract final class AppTheme {
-  /// Plus Jakarta Sans, per the plan's font recommendation.
+  /// Plus Jakarta Sans, per the plan's font recommendation, with a refined
+  /// scale: tighter, heavier display/headlines and roomier body line-height.
   static TextTheme _textTheme(Brightness brightness) {
     final base = brightness == Brightness.light
         ? ThemeData.light().textTheme
         : ThemeData.dark().textTheme;
-    return GoogleFonts.plusJakartaSansTextTheme(base);
+    final t = GoogleFonts.plusJakartaSansTextTheme(base);
+    return t.copyWith(
+      headlineLarge: t.headlineLarge?.copyWith(
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.8,
+        height: 1.1,
+      ),
+      headlineMedium: t.headlineMedium?.copyWith(
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.5,
+        height: 1.1,
+      ),
+      headlineSmall: t.headlineSmall?.copyWith(
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
+      ),
+      titleLarge: t.titleLarge?.copyWith(
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.2,
+      ),
+      titleMedium: t.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+      bodyLarge: t.bodyLarge?.copyWith(height: 1.45),
+      bodyMedium: t.bodyMedium?.copyWith(height: 1.45),
+      labelLarge: t.labelLarge?.copyWith(letterSpacing: 0.1),
+    );
   }
 
   static FThemeData get foruiLight => FThemeData(

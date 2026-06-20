@@ -12,11 +12,15 @@ class DestinationRouteText extends ConsumerWidget {
   const DestinationRouteText({
     required this.tripId,
     this.maxLines = 1,
+    this.color,
     super.key,
   });
 
   final int tripId;
   final int maxLines;
+
+  /// Overrides the text colour (e.g. white on a gradient cover).
+  final Color? color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,9 +34,9 @@ class DestinationRouteText extends ConsumerWidget {
           route,
           maxLines: maxLines,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.secondaryText),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: color ?? context.cSecondaryText,
+          ),
         );
       },
       orElse: () => const SizedBox.shrink(),

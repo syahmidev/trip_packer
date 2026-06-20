@@ -21,7 +21,7 @@ class TripDetailScreen extends ConsumerWidget {
     final tripAsync = ref.watch(tripProvider(tripId));
 
     return AppScaffold(
-      title: 'Trip Overview',
+      title: '',
       suffixes: [
         FHeaderAction(
           icon: const Icon(Icons.delete_outline),
@@ -39,26 +39,15 @@ class TripDetailScreen extends ConsumerWidget {
           final days = trip.endDate.difference(trip.startDate).inDays + 1;
 
           return ListView(
-            padding: const EdgeInsets.only(top: 8, bottom: 8),
+            padding: const EdgeInsets.only(top: 4, bottom: 8),
             children: [
-              Text(
-                trip.title,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  height: 1.1,
-                ),
+              _TripCover(
+                title: trip.title,
+                dateLine:
+                    '${df.format(trip.startDate)} – ${df.format(trip.endDate)}'
+                    '  •  $days day${days == 1 ? '' : 's'}',
+                tripId: tripId,
               ),
-              const SizedBox(height: 8),
-              Text(
-                '${df.format(trip.startDate)} – ${df.format(trip.endDate)}  •  '
-                '$days day${days == 1 ? '' : 's'}',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: context.cSecondaryText),
-              ),
-              const SizedBox(height: 10),
-              DestinationRouteText(tripId: tripId, maxLines: 2),
               const SizedBox(height: 28),
               Text(
                 'Plan',
@@ -142,6 +131,77 @@ class TripDetailScreen extends ConsumerWidget {
     ),
     _Module('Packing', 'Checklist', Icons.checklist_outlined, 'packing'),
   ];
+}
+
+/// Gradient "listing cover" hero for the trip identity (Airbnb-style).
+class _TripCover extends StatelessWidget {
+  const _TripCover({
+    required this.title,
+    required this.dateLine,
+    required this.tripId,
+  });
+
+  final String title;
+  final String dateLine;
+  final int tripId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF357A72), Color(0xFF1E4A45)],
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x332F6F68),
+            blurRadius: 24,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 14,
+                color: Colors.white70,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                dateLine,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          DestinationRouteText(
+            tripId: tripId,
+            maxLines: 2,
+            color: Colors.white70,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _Module {
