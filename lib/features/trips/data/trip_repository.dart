@@ -9,19 +9,21 @@ class TripRepository {
   final AppDatabase _db;
 
   Stream<List<Trip>> watchAllTrips() {
-    return (_db.select(_db.trips)
-          ..orderBy([(t) => OrderingTerm.desc(t.startDate)]))
-        .watch();
+    return (_db.select(
+      _db.trips,
+    )..orderBy([(t) => OrderingTerm.desc(t.startDate)])).watch();
   }
 
   Future<Trip?> findById(int id) {
-    return (_db.select(_db.trips)..where((t) => t.id.equals(id)))
-        .getSingleOrNull();
+    return (_db.select(
+      _db.trips,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
   }
 
   Stream<Trip?> watchById(int id) {
-    return (_db.select(_db.trips)..where((t) => t.id.equals(id)))
-        .watchSingleOrNull();
+    return (_db.select(
+      _db.trips,
+    )..where((t) => t.id.equals(id))).watchSingleOrNull();
   }
 
   Future<int> createTrip(TripsCompanion trip) {

@@ -70,10 +70,9 @@ class _DestinationFormSheetState extends State<DestinationFormSheet> {
           children: [
             Text(
               isEdit ? 'Edit Destination' : 'Add Destination',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
             TextFormField(

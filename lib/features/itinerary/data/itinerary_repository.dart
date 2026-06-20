@@ -27,7 +27,9 @@ class ItineraryRepository {
     required String title,
     String? notes,
   }) {
-    return _db.into(_db.itineraryDays).insert(
+    return _db
+        .into(_db.itineraryDays)
+        .insert(
           ItineraryDaysCompanion.insert(
             tripId: tripId,
             date: date,

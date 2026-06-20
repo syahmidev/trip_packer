@@ -1,12 +1,15 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/categories.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/budget_calculator.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_scaffold.dart';
 import '../../trips/providers/trip_providers.dart';
 import '../providers/budget_providers.dart';
 import '../widgets/expense_form_sheet.dart';
@@ -24,9 +27,19 @@ class BudgetScreen extends ConsumerWidget {
     final categoriesAsync = ref.watch(budgetCategoriesProvider(tripId));
     final expensesAsync = ref.watch(expensesProvider(tripId));
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Budget')),
-      body: tripAsync.when(
+    return AppScaffold(
+      title: 'Budget',
+      footer: tripAsync.maybeWhen(
+        data: (trip) => trip == null
+            ? null
+            : FButton(
+                onPress: () => _addExpense(context, ref, trip),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Expense'),
+              ),
+        orElse: () => null,
+      ),
+      child: tripAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (trip) {
@@ -39,15 +52,17 @@ class BudgetScreen extends ConsumerWidget {
 
           final totalPlanned = BudgetCalculator.totalPlanned(categories);
           final totalSpent = BudgetCalculator.totalSpent(expenses);
-          final remaining =
-              BudgetCalculator.remaining(trip.estimatedBudget, expenses);
+          final remaining = BudgetCalculator.remaining(
+            trip.estimatedBudget,
+            expenses,
+          );
           final spentByCat = BudgetCalculator.spentByCategory(expenses);
           final plannedByCat = {
             for (final c in categories) c.category: c.plannedAmount,
           };
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             children: [
               _SummaryCard(
                 money: money,
@@ -57,7 +72,7 @@ class BudgetScreen extends ConsumerWidget {
                 remaining: remaining,
               ),
               const SizedBox(height: 24),
-              _SectionHeader('Planned vs Spent'),
+              const _SectionHeader('Planned vs Spent'),
               const SizedBox(height: 8),
               _CategoryTable(
                 money: money,
@@ -72,17 +87,8 @@ class BudgetScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(child: _SectionHeader('Expenses')),
-                  TextButton.icon(
-                    onPressed: () => _addExpense(context, ref, trip),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
+              const _SectionHeader('Expenses'),
+              const SizedBox(height: 8),
               if (expenses.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
@@ -90,8 +96,8 @@ class BudgetScreen extends ConsumerWidget {
                     child: Text(
                       'No expenses recorded yet.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.secondaryText,
-                          ),
+                        color: context.cSecondaryText,
+                      ),
                     ),
                   ),
                 )
@@ -106,16 +112,6 @@ class BudgetScreen extends ConsumerWidget {
             ],
           );
         },
-      ),
-      floatingActionButton: tripAsync.maybeWhen(
-        data: (trip) => trip == null
-            ? null
-            : FloatingActionButton.extended(
-                onPressed: () => _addExpense(context, ref, trip),
-                icon: const Icon(Icons.add),
-                label: const Text('Expense'),
-              ),
-        orElse: () => null,
       ),
     );
   }
@@ -138,7 +134,9 @@ class BudgetScreen extends ConsumerWidget {
       ),
     );
     if (result == null) return;
-    await ref.read(budgetRepositoryProvider).addExpense(
+    await ref
+        .read(budgetRepositoryProvider)
+        .addExpense(
           ExpensesCompanion.insert(
             tripId: tripId,
             title: result.title,
@@ -168,7 +166,9 @@ class BudgetScreen extends ConsumerWidget {
       ),
     );
     if (result == null) return;
-    await ref.read(budgetRepositoryProvider).updateExpense(
+    await ref
+        .read(budgetRepositoryProvider)
+        .updateExpense(
           expense.copyWith(
             title: result.title,
             category: result.category,
@@ -235,19 +235,19 @@ class BudgetScreen extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () =>
-                Navigator.pop(ctx, double.tryParse(controller.text.trim()) ?? 0),
+            onPressed: () => Navigator.pop(
+              ctx,
+              double.tryParse(controller.text.trim()) ?? 0,
+            ),
             child: const Text('Save'),
           ),
         ],
       ),
     );
     if (amount == null) return;
-    await ref.read(budgetRepositoryProvider).setPlanned(
-          tripId: tripId,
-          category: category,
-          amount: amount,
-        );
+    await ref
+        .read(budgetRepositoryProvider)
+        .setPlanned(tripId: tripId, category: category, amount: amount);
   }
 }
 
@@ -269,33 +269,29 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final overBudget = remaining < 0;
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      color: AppColors.card,
+    return AppCard(
+      margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(22),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               'Remaining',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.secondaryText,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: context.cSecondaryText),
             ),
             const SizedBox(height: 2),
             Text(
               money.format(remaining),
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: overBudget ? AppColors.danger : AppColors.primaryAccent,
-                  ),
+                fontWeight: FontWeight.w800,
+                color: overBudget ? AppColors.danger : AppColors.primaryAccent,
+              ),
             ),
-            const Divider(height: 28, color: AppColors.border),
+            Divider(height: 28, color: context.cBorder),
             _row(context, 'Total budget', money.format(totalBudget)),
             const SizedBox(height: 8),
             _row(context, 'Total planned', money.format(totalPlanned)),
@@ -313,16 +309,15 @@ class _SummaryCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.secondaryText,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: context.cSecondaryText),
         ),
         Text(
           value,
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(fontWeight: FontWeight.w600),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -344,13 +339,9 @@ class _CategoryTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      color: AppColors.card,
+    return AppCard(
+      margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
@@ -366,8 +357,8 @@ class _CategoryTable extends StatelessWidget {
                       'Planned',
                       textAlign: TextAlign.end,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.secondaryText,
-                          ),
+                        color: context.cSecondaryText,
+                      ),
                     ),
                   ),
                   Expanded(
@@ -376,8 +367,8 @@ class _CategoryTable extends StatelessWidget {
                       'Spent',
                       textAlign: TextAlign.end,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.secondaryText,
-                          ),
+                        color: context.cSecondaryText,
+                      ),
                     ),
                   ),
                 ],
@@ -426,7 +417,7 @@ class _CategoryRow extends StatelessWidget {
         decoration: BoxDecoration(
           border: isLast
               ? null
-              : const Border(bottom: BorderSide(color: AppColors.border)),
+              : Border(bottom: BorderSide(color: context.cBorder)),
         ),
         child: Row(
           children: [
@@ -437,7 +428,7 @@ class _CategoryRow extends StatelessWidget {
                 planned == 0 ? '—' : money.format(planned),
                 textAlign: TextAlign.end,
                 style: TextStyle(
-                  color: planned == 0 ? AppColors.secondaryText : null,
+                  color: planned == 0 ? context.cSecondaryText : null,
                 ),
               ),
             ),
@@ -476,26 +467,22 @@ class _ExpenseTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final df = DateFormat('d MMM');
     final base = BudgetCalculator.inBaseCurrency(expense);
-    final baseText =
-        NumberFormat.currency(symbol: '$baseCurrency ', decimalDigits: 2)
-            .format(base);
+    final baseText = NumberFormat.currency(
+      symbol: '$baseCurrency ',
+      decimalDigits: 2,
+    ).format(base);
     final isForeign = expense.currency != baseCurrency;
     final paidText = isForeign
         ? '${expense.currency} ${expense.amount.toStringAsFixed(2)}'
         : null;
 
-    return Card(
-      elevation: 0,
+    return AppCard(
       margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      color: AppColors.card,
+      padding: EdgeInsets.zero,
       child: ListTile(
         title: Text(
           expense.title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         subtitle: Text(
           '${expense.category}  •  ${df.format(expense.date)}'
@@ -504,10 +491,7 @@ class _ExpenseTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              baseText,
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
+            Text(baseText, style: const TextStyle(fontWeight: FontWeight.w700)),
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, size: 20),
               onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
@@ -532,10 +516,9 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: Theme.of(context)
-          .textTheme
-          .titleMedium
-          ?.copyWith(fontWeight: FontWeight.w700),
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
     );
   }
 }

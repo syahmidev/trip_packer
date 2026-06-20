@@ -1,10 +1,13 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../trips/providers/trip_providers.dart';
 import '../providers/transport_providers.dart';
@@ -21,9 +24,19 @@ class TransportScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final transports = ref.watch(transportsProvider(tripId));
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Transport')),
-      body: transports.when(
+    return AppScaffold(
+      title: 'Transport',
+      footer: transports.maybeWhen(
+        data: (list) => list.isEmpty
+            ? null
+            : FButton(
+                onPress: () => _openForm(context, ref),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Transport'),
+              ),
+        orElse: () => null,
+      ),
+      child: transports.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (list) {
@@ -32,15 +45,15 @@ class TransportScreen extends ConsumerWidget {
               icon: Icons.directions_bus_outlined,
               title: 'No transport yet',
               message: 'Add the buses, trains, and flights for your route.',
-              action: FilledButton.icon(
-                onPressed: () => _openForm(context, ref),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Transport'),
+              action: FButton(
+                onPress: () => _openForm(context, ref),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Transport'),
               ),
             );
           }
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             itemCount: list.length,
             itemBuilder: (context, i) => _TransportCard(
               transport: list[i],
@@ -49,16 +62,6 @@ class TransportScreen extends ConsumerWidget {
             ),
           );
         },
-      ),
-      floatingActionButton: transports.maybeWhen(
-        data: (list) => list.isEmpty
-            ? null
-            : FloatingActionButton.extended(
-                onPressed: () => _openForm(context, ref),
-                icon: const Icon(Icons.add),
-                label: const Text('Add'),
-              ),
-        orElse: () => null,
       ),
     );
   }
@@ -155,90 +158,75 @@ class _TransportCard extends StatelessWidget {
     final t = DateFormat('HH:mm');
     final hasCost = transport.cost > 0;
 
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      color: AppColors.card,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2, right: 14),
-              child: Icon(
-                _iconFor(transport.type),
-                color: AppColors.primaryAccent,
-              ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${transport.from} → ${transport.to}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(14, 14, 6, 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppIconChip(icon: _iconFor(transport.type)),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${transport.from} → ${transport.to}',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
-                      _TypePill(label: transport.type),
-                    ],
+                    ),
+                    _TypePill(label: transport.type),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  dt.format(transport.departureDateTime) +
+                      (transport.arrivalDateTime == null
+                          ? ''
+                          : '  →  ${t.format(transport.arrivalDateTime!)}'),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: context.cSecondaryText,
                   ),
+                ),
+                if (hasCost || transport.bookingReference != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    dt.format(transport.departureDateTime) +
-                        (transport.arrivalDateTime == null
-                            ? ''
-                            : '  →  ${t.format(transport.arrivalDateTime!)}'),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.secondaryText,
-                        ),
+                    [
+                      if (hasCost)
+                        NumberFormat.currency(
+                          symbol: '',
+                          decimalDigits: 0,
+                        ).format(transport.cost),
+                      if (transport.bookingReference != null)
+                        'Ref: ${transport.bookingReference}',
+                    ].join('  •  '),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  if (hasCost || transport.bookingReference != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      [
-                        if (hasCost)
-                          NumberFormat.currency(symbol: '', decimalDigits: 0)
-                              .format(transport.cost),
-                        if (transport.bookingReference != null)
-                          'Ref: ${transport.bookingReference}',
-                      ].join('  •  '),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                  if (transport.notes != null &&
-                      transport.notes!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      transport.notes!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.secondaryText,
-                          ),
-                    ),
-                  ],
                 ],
-              ),
-            ),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, size: 20),
-              onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit')),
-                PopupMenuItem(value: 'delete', child: Text('Delete')),
+                if (transport.notes != null && transport.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    transport.notes!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.cSecondaryText,
+                    ),
+                  ),
+                ],
               ],
             ),
-          ],
-        ),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'edit', child: Text('Edit')),
+              PopupMenuItem(value: 'delete', child: Text('Delete')),
+            ],
+          ),
+        ],
       ),
     );
   }

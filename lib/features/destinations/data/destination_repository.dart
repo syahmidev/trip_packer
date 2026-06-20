@@ -25,10 +25,12 @@ class DestinationRepository {
     required String country,
     required String city,
   }) async {
-    final existing = await (_db.select(_db.destinations)
-          ..where((d) => d.tripId.equals(tripId)))
-        .get();
-    return _db.into(_db.destinations).insert(
+    final existing = await (_db.select(
+      _db.destinations,
+    )..where((d) => d.tripId.equals(tripId))).get();
+    return _db
+        .into(_db.destinations)
+        .insert(
           DestinationsCompanion.insert(
             tripId: tripId,
             country: country,

@@ -6,6 +6,8 @@ import 'package:trip_packer/core/database/app_database.dart';
 import 'package:trip_packer/core/providers/database_provider.dart';
 import 'package:trip_packer/features/packing/screens/packing_screen.dart';
 
+import 'forui_test_app.dart';
+
 Future<void> drain(WidgetTester tester) async {
   for (var i = 0; i < 6; i++) {
     await tester.pump(const Duration(milliseconds: 20));
@@ -38,7 +40,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db)],
-        child: MaterialApp(home: PackingScreen(tripId: tripId)),
+        child: ForuiTestApp(child: PackingScreen(tripId: tripId)),
       ),
     );
     await drain(tester);

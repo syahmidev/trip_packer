@@ -28,13 +28,16 @@ class BudgetRepository {
     required String category,
     required double amount,
   }) async {
-    final existing = await (_db.select(_db.budgetCategories)
-          ..where((c) =>
-              c.tripId.equals(tripId) & c.category.equals(category)))
-        .getSingleOrNull();
+    final existing =
+        await (_db.select(_db.budgetCategories)..where(
+              (c) => c.tripId.equals(tripId) & c.category.equals(category),
+            ))
+            .getSingleOrNull();
 
     if (existing == null) {
-      await _db.into(_db.budgetCategories).insert(
+      await _db
+          .into(_db.budgetCategories)
+          .insert(
             BudgetCategoriesCompanion.insert(
               tripId: tripId,
               category: category,

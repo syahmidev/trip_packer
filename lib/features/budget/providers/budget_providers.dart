@@ -11,11 +11,13 @@ final budgetRepositoryProvider = Provider<BudgetRepository>((ref) {
 /// Streams the planned budget categories for a trip.
 final budgetCategoriesProvider =
     StreamProvider.family<List<BudgetCategory>, int>((ref, tripId) {
-  return ref.watch(budgetRepositoryProvider).watchCategories(tripId);
-});
+      return ref.watch(budgetRepositoryProvider).watchCategories(tripId);
+    });
 
 /// Streams the trip's expenses, newest first.
-final expensesProvider =
-    StreamProvider.family<List<Expense>, int>((ref, tripId) {
+final expensesProvider = StreamProvider.family<List<Expense>, int>((
+  ref,
+  tripId,
+) {
   return ref.watch(budgetRepositoryProvider).watchExpenses(tripId);
 });

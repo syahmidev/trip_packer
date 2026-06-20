@@ -9,7 +9,9 @@ final packingRepositoryProvider = Provider<PackingRepository>((ref) {
 });
 
 /// Streams the trip's packing items, ordered by category then title.
-final packingItemsProvider =
-    StreamProvider.family<List<PackingItem>, int>((ref, tripId) {
+final packingItemsProvider = StreamProvider.family<List<PackingItem>, int>((
+  ref,
+  tripId,
+) {
   return ref.watch(packingRepositoryProvider).watchForTrip(tripId);
 });

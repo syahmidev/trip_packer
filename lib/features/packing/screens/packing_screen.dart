@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 
 import '../../../core/constants/categories.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../providers/packing_providers.dart';
 import '../widgets/packing_form_sheet.dart';
@@ -29,9 +32,19 @@ class _PackingScreenState extends ConsumerState<PackingScreen> {
   Widget build(BuildContext context) {
     final items = ref.watch(packingItemsProvider(tripId));
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Packing')),
-      body: items.when(
+    return AppScaffold(
+      title: 'Packing',
+      footer: items.maybeWhen(
+        data: (all) => all.isEmpty
+            ? null
+            : FButton(
+                onPress: () => _openForm(context),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Item'),
+              ),
+        orElse: () => null,
+      ),
+      child: items.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (all) {
@@ -40,10 +53,10 @@ class _PackingScreenState extends ConsumerState<PackingScreen> {
               icon: Icons.checklist_outlined,
               title: 'Nothing to pack yet',
               message: 'Add items to build your packing checklist.',
-              action: FilledButton.icon(
-                onPressed: () => _openForm(context),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Item'),
+              action: FButton(
+                onPress: () => _openForm(context),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Item'),
               ),
             );
           }
@@ -52,11 +65,12 @@ class _PackingScreenState extends ConsumerState<PackingScreen> {
           final usedCategories = AppCategories.packing
               .where((c) => all.any((i) => i.category == c))
               .toList();
-          // Drop a filter that no longer has any items.
-          final filter =
-              (_filter != null && usedCategories.contains(_filter)) ? _filter : null;
-          final visible =
-              filter == null ? all : all.where((i) => i.category == filter).toList();
+          final filter = (_filter != null && usedCategories.contains(_filter))
+              ? _filter
+              : null;
+          final visible = filter == null
+              ? all
+              : all.where((i) => i.category == filter).toList();
 
           return Column(
             children: [
@@ -68,7 +82,7 @@ class _PackingScreenState extends ConsumerState<PackingScreen> {
               ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+                  padding: const EdgeInsets.only(top: 4, bottom: 8),
                   children: [
                     for (final category in AppCategories.packing)
                       if (visible.any((i) => i.category == category))
@@ -80,8 +94,7 @@ class _PackingScreenState extends ConsumerState<PackingScreen> {
                           onToggle: (item, value) => ref
                               .read(packingRepositoryProvider)
                               .setPacked(item.id, value),
-                          onEdit: (item) =>
-                              _openForm(context, existing: item),
+                          onEdit: (item) => _openForm(context, existing: item),
                           onDelete: (item) => _delete(context, item),
                         ),
                   ],
@@ -90,16 +103,6 @@ class _PackingScreenState extends ConsumerState<PackingScreen> {
             ],
           );
         },
-      ),
-      floatingActionButton: items.maybeWhen(
-        data: (all) => all.isEmpty
-            ? null
-            : FloatingActionButton.extended(
-                onPressed: () => _openForm(context),
-                icon: const Icon(Icons.add),
-                label: const Text('Add'),
-              ),
-        orElse: () => null,
       ),
     );
   }
@@ -144,7 +147,7 @@ class _ProgressHeader extends StatelessWidget {
     final done = packed == total;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -153,20 +156,26 @@ class _ProgressHeader extends StatelessWidget {
             children: [
               Text(
                 '$packed of $total packed',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
               ),
               if (done)
                 const Row(
                   children: [
-                    Icon(Icons.check_circle, size: 18, color: AppColors.success),
+                    Icon(
+                      Icons.check_circle,
+                      size: 18,
+                      color: AppColors.success,
+                    ),
                     SizedBox(width: 4),
-                    Text('All packed',
-                        style: TextStyle(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.w600)),
+                    Text(
+                      'All packed',
+                      style: TextStyle(
+                        color: AppColors.success,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
             ],
@@ -177,7 +186,7 @@ class _ProgressHeader extends StatelessWidget {
             child: LinearProgressIndicator(
               value: fraction,
               minHeight: 8,
-              backgroundColor: AppColors.border,
+              backgroundColor: context.cBorder,
               color: done ? AppColors.success : AppColors.primaryAccent,
             ),
           ),
@@ -204,7 +213,7 @@ class _FilterBar extends StatelessWidget {
       height: 48,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.zero,
         children: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -254,9 +263,9 @@ class _CategoryGroup extends StatelessWidget {
           child: Text(
             category,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: AppColors.secondaryText,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: context.cSecondaryText,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
         for (final item in items)
@@ -274,24 +283,21 @@ class _CategoryGroup extends StatelessWidget {
               ),
               child: const Icon(Icons.delete_outline, color: Colors.white),
             ),
-            child: Card(
-              elevation: 0,
+            child: AppCard(
               margin: const EdgeInsets.only(bottom: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: AppColors.border),
-              ),
-              color: AppColors.card,
+              padding: EdgeInsets.zero,
               child: CheckboxListTile(
                 value: item.isPacked,
                 onChanged: (v) => onToggle(item, v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
+                activeColor: AppColors.primaryAccent,
                 title: Text(
                   item.title,
                   style: TextStyle(
-                    decoration:
-                        item.isPacked ? TextDecoration.lineThrough : null,
-                    color: item.isPacked ? AppColors.secondaryText : null,
+                    decoration: item.isPacked
+                        ? TextDecoration.lineThrough
+                        : null,
+                    color: item.isPacked ? context.cSecondaryText : null,
                   ),
                 ),
                 secondary: IconButton(

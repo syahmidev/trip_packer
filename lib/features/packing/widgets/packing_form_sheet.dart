@@ -33,7 +33,8 @@ class _PackingFormSheetState extends State<PackingFormSheet> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.existing?.title);
-    _category = widget.existing?.category ??
+    _category =
+        widget.existing?.category ??
         widget.initialCategory ??
         AppCategories.packing.first;
   }
@@ -74,10 +75,9 @@ class _PackingFormSheetState extends State<PackingFormSheet> {
           children: [
             Text(
               isEdit ? 'Edit Item' : 'Add Item',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
             TextFormField(

@@ -7,6 +7,8 @@ import 'package:trip_packer/core/database/app_database.dart';
 import 'package:trip_packer/core/providers/database_provider.dart';
 import 'package:trip_packer/features/trips/screens/home_screen.dart';
 
+import 'forui_test_app.dart';
+
 /// Pumps a few fixed frames so Drift's query stream can deliver without
 /// hanging on the loading spinner (which never settles).
 Future<void> drain(WidgetTester tester) async {
@@ -24,7 +26,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(db)],
-        child: const MaterialApp(home: HomeScreen()),
+        child: const ForuiTestApp(child: HomeScreen()),
       ),
     );
     await drain(tester);

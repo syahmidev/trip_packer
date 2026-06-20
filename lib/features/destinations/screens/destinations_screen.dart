@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../providers/destination_providers.dart';
 import '../widgets/destination_form_sheet.dart';
@@ -18,9 +21,19 @@ class DestinationsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final destinations = ref.watch(destinationsProvider(tripId));
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Destinations')),
-      body: destinations.when(
+    return AppScaffold(
+      title: 'Destinations',
+      footer: destinations.maybeWhen(
+        data: (list) => list.isEmpty
+            ? null
+            : FButton(
+                onPress: () => _openForm(context, ref),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Destination'),
+              ),
+        orElse: () => null,
+      ),
+      child: destinations.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (list) {
@@ -29,15 +42,16 @@ class DestinationsScreen extends ConsumerWidget {
               icon: Icons.public,
               title: 'No destinations yet',
               message: 'Add the countries and cities on your route, in order.',
-              action: FilledButton.icon(
-                onPressed: () => _openForm(context, ref),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Destination'),
+              action: FButton(
+                onPress: () => _openForm(context, ref),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Destination'),
               ),
             );
           }
           return ReorderableListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            buildDefaultDragHandles: false,
             itemCount: list.length,
             onReorderItem: (oldIndex, newIndex) =>
                 _onReorder(ref, list, oldIndex, newIndex),
@@ -53,16 +67,6 @@ class DestinationsScreen extends ConsumerWidget {
             },
           );
         },
-      ),
-      floatingActionButton: destinations.maybeWhen(
-        data: (list) => list.isEmpty
-            ? null
-            : FloatingActionButton.extended(
-                onPressed: () => _openForm(context, ref),
-                icon: const Icon(Icons.add),
-                label: const Text('Add'),
-              ),
-        orElse: () => null,
       ),
     );
   }
@@ -154,30 +158,29 @@ class _DestinationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      color: AppColors.card,
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: ListTile(
-        leading: CircleAvatar(
-          radius: 14,
-          backgroundColor: AppColors.primaryAccent.withValues(alpha: 0.12),
+        leading: Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.primaryAccent.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(11),
+          ),
           child: Text(
             '$position',
             style: const TextStyle(
               color: AppColors.primaryAccent,
               fontWeight: FontWeight.w700,
-              fontSize: 13,
+              fontSize: 14,
             ),
           ),
         ),
         title: Text(
           destination.city,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         subtitle: Text(destination.country),
         trailing: Row(
@@ -195,9 +198,9 @@ class _DestinationTile extends StatelessWidget {
             ),
             ReorderableDragStartListener(
               index: position - 1,
-              child: const Padding(
-                padding: EdgeInsets.only(left: 4),
-                child: Icon(Icons.drag_handle, color: AppColors.secondaryText),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Icon(Icons.drag_handle, color: context.cSecondaryText),
               ),
             ),
           ],

@@ -23,7 +23,8 @@ class ModulePlaceholder extends StatelessWidget {
       body: EmptyState(
         icon: icon,
         title: '$title coming up',
-        message: 'This module is scaffolded and wired into navigation. '
+        message:
+            'This module is scaffolded and wired into navigation. '
             'CRUD lands in $phase of the roadmap.',
       ),
     );

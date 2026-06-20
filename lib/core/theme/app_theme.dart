@@ -19,41 +19,38 @@ abstract final class AppTheme {
   }
 
   static FThemeData get foruiLight => FThemeData(
-        touch: true,
-        colors: FColors.zincLight.copyWith(
-          background: AppColors.background,
-          foreground: AppColors.primaryText,
-          card: AppColors.card,
-          border: AppColors.border,
-          primary: AppColors.primaryAccent,
-          primaryForeground: Colors.white,
-          mutedForeground: AppColors.secondaryText,
-          error: AppColors.danger,
-        ),
-      );
+    touch: true,
+    colors: FColors.zincLight.copyWith(
+      background: AppColors.background,
+      foreground: AppColors.primaryText,
+      card: AppColors.card,
+      border: AppColors.border,
+      primary: AppColors.primaryAccent,
+      primaryForeground: Colors.white,
+      mutedForeground: AppColors.secondaryText,
+      error: AppColors.danger,
+    ),
+  );
 
   static FThemeData get foruiDark => FThemeData(
-        touch: true,
-        colors: FColors.zincDark.copyWith(
-          background: AppColors.darkBackground,
-          foreground: AppColors.darkPrimaryText,
-          card: AppColors.darkCard,
-          border: AppColors.darkBorder,
-          primary: AppColors.primaryAccent,
-          primaryForeground: Colors.white,
-          mutedForeground: AppColors.darkSecondaryText,
-          error: AppColors.danger,
-        ),
-      );
+    touch: true,
+    colors: FColors.zincDark.copyWith(
+      background: AppColors.darkBackground,
+      foreground: AppColors.darkPrimaryText,
+      card: AppColors.darkCard,
+      border: AppColors.darkBorder,
+      primary: AppColors.primaryAccent,
+      primaryForeground: Colors.white,
+      mutedForeground: AppColors.darkSecondaryText,
+      error: AppColors.danger,
+    ),
+  );
 
   static ThemeData get materialLight {
     final scheme = ColorScheme.fromSeed(
       seedColor: AppColors.primaryAccent,
       brightness: Brightness.light,
-    ).copyWith(
-      surface: AppColors.card,
-      error: AppColors.danger,
-    );
+    ).copyWith(surface: AppColors.card, error: AppColors.danger);
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
@@ -66,10 +63,7 @@ abstract final class AppTheme {
     final scheme = ColorScheme.fromSeed(
       seedColor: AppColors.primaryAccent,
       brightness: Brightness.dark,
-    ).copyWith(
-      surface: AppColors.darkCard,
-      error: AppColors.danger,
-    );
+    ).copyWith(surface: AppColors.darkCard, error: AppColors.danger);
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,

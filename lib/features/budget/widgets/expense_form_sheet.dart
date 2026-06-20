@@ -66,15 +66,19 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
     super.initState();
     final e = widget.existing;
     _titleController = TextEditingController(text: e?.title);
-    _amountController =
-        TextEditingController(text: e == null ? '' : _trim(e.amount));
+    _amountController = TextEditingController(
+      text: e == null ? '' : _trim(e.amount),
+    );
     _rateController = TextEditingController(
       text: e == null ? '1.0' : _trim(e.exchangeRate),
     );
     _category = e?.category ?? AppCategories.expense.first;
     _currency = e?.currency ?? widget.baseCurrency;
-    _date = AppDateUtils.clamp(e?.date ?? DateTime.now(),
-        min: widget.tripStart, max: widget.tripEnd);
+    _date = AppDateUtils.clamp(
+      e?.date ?? DateTime.now(),
+      min: widget.tripStart,
+      max: widget.tripEnd,
+    );
   }
 
   static String _trim(double v) =>
@@ -148,10 +152,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
             children: [
               Text(
                 isEdit ? 'Edit Expense' : 'Add Expense',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 20),
               TextFormField(
@@ -185,7 +188,8 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                       controller: _amountController,
                       decoration: const InputDecoration(labelText: 'Amount'),
                       keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                        decimal: true,
+                      ),
                       onChanged: (_) => setState(() {}),
                       validator: (v) {
                         final n = double.tryParse((v ?? '').trim());
@@ -219,8 +223,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                       ? 'Same as base currency — rate is 1.0'
                       : '1 $_currency = rate × ${widget.baseCurrency}',
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 onChanged: (_) => setState(() {}),
                 validator: (v) {
                   if (_isBaseCurrency) return null;

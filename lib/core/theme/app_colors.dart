@@ -14,10 +14,28 @@ abstract final class AppColors {
   static const Color warning = Color(0xFFD97706);
   static const Color danger = Color(0xFFDC2626);
 
-  // Dark mode counterparts (approximate, tuned later in the Polish phase).
+  // Dark mode counterparts.
   static const Color darkBackground = Color(0xFF14110D);
   static const Color darkCard = Color(0xFF1F1B16);
   static const Color darkPrimaryText = Color(0xFFF5F3EE);
   static const Color darkSecondaryText = Color(0xFF9CA3AF);
   static const Color darkBorder = Color(0xFF332D25);
+}
+
+/// Brightness-aware palette resolution (plan Phase 11 — dark mode).
+///
+/// Accent/status colours are shared across themes; only the surface, border,
+/// and text colours flip with [Brightness]. Use these instead of the raw
+/// [AppColors] light constants inside widgets so screens adapt to dark mode.
+extension AppPalette on BuildContext {
+  bool get _isDark => Theme.of(this).brightness == Brightness.dark;
+
+  Color get cBackground =>
+      _isDark ? AppColors.darkBackground : AppColors.background;
+  Color get cCard => _isDark ? AppColors.darkCard : AppColors.card;
+  Color get cBorder => _isDark ? AppColors.darkBorder : AppColors.border;
+  Color get cPrimaryText =>
+      _isDark ? AppColors.darkPrimaryText : AppColors.primaryText;
+  Color get cSecondaryText =>
+      _isDark ? AppColors.darkSecondaryText : AppColors.secondaryText;
 }

@@ -9,7 +9,9 @@ final destinationRepositoryProvider = Provider<DestinationRepository>((ref) {
 });
 
 /// Streams the ordered destination route for a trip.
-final destinationsProvider =
-    StreamProvider.family<List<Destination>, int>((ref, tripId) {
+final destinationsProvider = StreamProvider.family<List<Destination>, int>((
+  ref,
+  tripId,
+) {
   return ref.watch(destinationRepositoryProvider).watchForTrip(tripId);
 });

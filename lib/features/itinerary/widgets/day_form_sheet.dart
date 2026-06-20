@@ -49,8 +49,11 @@ class _DayFormSheetState extends State<DayFormSheet> {
     _notesController = TextEditingController(text: widget.existing?.notes);
     final initial =
         widget.existing?.date ?? widget.initialDate ?? DateTime.now();
-    _date = AppDateUtils.clamp(initial,
-        min: widget.tripStart, max: widget.tripEnd);
+    _date = AppDateUtils.clamp(
+      initial,
+      min: widget.tripStart,
+      max: widget.tripEnd,
+    );
   }
 
   @override
@@ -103,10 +106,9 @@ class _DayFormSheetState extends State<DayFormSheet> {
           children: [
             Text(
               isEdit ? 'Edit Day' : 'Add Day',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
             InkWell(

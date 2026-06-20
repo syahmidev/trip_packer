@@ -26,7 +26,9 @@ class PackingRepository {
     required String title,
     required String category,
   }) {
-    return _db.into(_db.packingItems).insert(
+    return _db
+        .into(_db.packingItems)
+        .insert(
           PackingItemsCompanion.insert(
             tripId: tripId,
             title: title,
@@ -37,8 +39,9 @@ class PackingRepository {
 
   /// Toggles the packed state of a single item.
   Future<void> setPacked(int id, bool isPacked) {
-    return (_db.update(_db.packingItems)..where((p) => p.id.equals(id)))
-        .write(PackingItemsCompanion(isPacked: Value(isPacked)));
+    return (_db.update(_db.packingItems)..where((p) => p.id.equals(id))).write(
+      PackingItemsCompanion(isPacked: Value(isPacked)),
+    );
   }
 
   Future<bool> updateItem(PackingItem item) {

@@ -133,12 +133,12 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) => m.createAll(),
-        beforeOpen: (details) async {
-          // Enforce ON DELETE CASCADE foreign keys (plan fix #7).
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+    onCreate: (m) => m.createAll(),
+    beforeOpen: (details) async {
+      // Enforce ON DELETE CASCADE foreign keys (plan fix #7).
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 
   static QueryExecutor _open() => driftDatabase(name: 'trip_packer');
 }

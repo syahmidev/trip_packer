@@ -53,7 +53,9 @@ class _ActivityFormSheetState extends State<ActivityFormSheet> {
       text: existing?.estimatedCost?.toString() ?? '',
     );
     _notesController = TextEditingController(text: existing?.notes);
-    _time = existing?.time == null ? null : TimeOfDay.fromDateTime(existing!.time!);
+    _time = existing?.time == null
+        ? null
+        : TimeOfDay.fromDateTime(existing!.time!);
   }
 
   @override
@@ -116,10 +118,9 @@ class _ActivityFormSheetState extends State<ActivityFormSheet> {
           children: [
             Text(
               isEdit ? 'Edit Activity' : 'Add Activity',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
             TextFormField(
@@ -164,7 +165,9 @@ class _ActivityFormSheetState extends State<ActivityFormSheet> {
               decoration: const InputDecoration(
                 labelText: 'Estimated cost (optional)',
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return null;
                 final n = double.tryParse(v.trim());

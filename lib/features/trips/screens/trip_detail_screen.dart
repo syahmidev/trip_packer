@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_scaffold.dart';
 import '../../destinations/widgets/destination_route_text.dart';
 import '../providers/trip_providers.dart';
 
@@ -17,18 +20,15 @@ class TripDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tripAsync = ref.watch(tripProvider(tripId));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trip Overview'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: 'Delete trip',
-            onPressed: () => _confirmDelete(context, ref),
-          ),
-        ],
-      ),
-      body: tripAsync.when(
+    return AppScaffold(
+      title: 'Trip Overview',
+      suffixes: [
+        FHeaderAction(
+          icon: const Icon(Icons.delete_outline),
+          onPress: () => _confirmDelete(context, ref),
+        ),
+      ],
+      child: tripAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (trip) {
@@ -39,30 +39,41 @@ class TripDetailScreen extends ConsumerWidget {
           final days = trip.endDate.difference(trip.startDate).inDays + 1;
 
           return ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.only(top: 8, bottom: 8),
             children: [
               Text(
                 trip.title,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  height: 1.1,
+                ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 '${df.format(trip.startDate)} – ${df.format(trip.endDate)}  •  '
                 '$days day${days == 1 ? '' : 's'}',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.secondaryText,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: context.cSecondaryText),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               DestinationRouteText(tripId: tripId, maxLines: 2),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
+              Text(
+                'Plan',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: context.cSecondaryText,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                ),
+              ),
+              const SizedBox(height: 12),
               ..._modules.map(
                 (m) => _ModuleTile(
                   icon: m.icon,
                   label: m.label,
+                  subtitle: m.subtitle,
                   onTap: () => context.push('/trips/$tripId/${m.path}'),
                 ),
               ),
@@ -99,18 +110,44 @@ class TripDetailScreen extends ConsumerWidget {
   }
 
   static const _modules = <_Module>[
-    _Module('Destinations', Icons.public, 'destinations'),
-    _Module('Itinerary', Icons.event_note_outlined, 'itinerary'),
-    _Module('Budget', Icons.account_balance_wallet_outlined, 'budget'),
-    _Module('Transport', Icons.directions_bus_outlined, 'transport'),
-    _Module('Accommodation', Icons.hotel_outlined, 'accommodation'),
-    _Module('Packing', Icons.checklist_outlined, 'packing'),
+    _Module(
+      'Destinations',
+      'Your route, in order',
+      Icons.public_outlined,
+      'destinations',
+    ),
+    _Module(
+      'Itinerary',
+      'Day-by-day plan',
+      Icons.event_note_outlined,
+      'itinerary',
+    ),
+    _Module(
+      'Budget',
+      'Planned vs. spent',
+      Icons.account_balance_wallet_outlined,
+      'budget',
+    ),
+    _Module(
+      'Transport',
+      'Buses, trains, flights',
+      Icons.directions_bus_outlined,
+      'transport',
+    ),
+    _Module(
+      'Accommodation',
+      "Where you'll stay",
+      Icons.hotel_outlined,
+      'accommodation',
+    ),
+    _Module('Packing', 'Checklist', Icons.checklist_outlined, 'packing'),
   ];
 }
 
 class _Module {
-  const _Module(this.label, this.icon, this.path);
+  const _Module(this.label, this.subtitle, this.icon, this.path);
   final String label;
+  final String subtitle;
   final IconData icon;
   final String path;
 }
@@ -119,28 +156,50 @@ class _ModuleTile extends StatelessWidget {
   const _ModuleTile({
     required this.icon,
     required this.label,
+    required this.subtitle,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
+  final String subtitle;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      color: AppColors.card,
-      child: ListTile(
-        leading: Icon(icon, color: AppColors.primaryAccent),
-        title: Text(label),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: [
+          AppIconChip(icon: icon),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: context.cSecondaryText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right,
+            size: 20,
+            color: context.cSecondaryText.withValues(alpha: 0.6),
+          ),
+        ],
       ),
     );
   }

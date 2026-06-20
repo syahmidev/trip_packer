@@ -73,11 +73,20 @@ class _TransportFormSheetState extends State<TransportFormSheet> {
     _refController = TextEditingController(text: t?.bookingReference);
     _notesController = TextEditingController(text: t?.notes);
     _type = t?.type ?? AppCategories.transportTypes.first;
-    final departure = t?.departureDateTime ??
+    final departure =
+        t?.departureDateTime ??
         widget.initialDate ??
-        DateTime.now().copyWith(minute: 0, second: 0, millisecond: 0, microsecond: 0);
-    _departure = AppDateUtils.clamp(departure,
-        min: widget.tripStart, max: widget.tripEnd);
+        DateTime.now().copyWith(
+          minute: 0,
+          second: 0,
+          millisecond: 0,
+          microsecond: 0,
+        );
+    _departure = AppDateUtils.clamp(
+      departure,
+      min: widget.tripStart,
+      max: widget.tripEnd,
+    );
     _arrival = t?.arrivalDateTime;
   }
 
@@ -97,8 +106,11 @@ class _TransportFormSheetState extends State<TransportFormSheet> {
   Future<DateTime?> _pickDateTime(DateTime initial) async {
     final date = await showDatePicker(
       context: context,
-      initialDate: AppDateUtils.clamp(initial,
-          min: widget.tripStart, max: widget.tripEnd),
+      initialDate: AppDateUtils.clamp(
+        initial,
+        min: widget.tripStart,
+        max: widget.tripEnd,
+      ),
       firstDate: widget.tripStart ?? DateTime(initial.year - 2),
       lastDate: widget.tripEnd ?? DateTime(initial.year + 5),
     );
@@ -157,10 +169,9 @@ class _TransportFormSheetState extends State<TransportFormSheet> {
             children: [
               Text(
                 isEdit ? 'Edit Transport' : 'Add Transport',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 20),
               DropdownButtonFormField<String>(
@@ -233,15 +244,18 @@ class _TransportFormSheetState extends State<TransportFormSheet> {
                             onPressed: () => setState(() => _arrival = null),
                           ),
                   ),
-                  child: Text(_arrival == null ? 'Not set' : df.format(_arrival!)),
+                  child: Text(
+                    _arrival == null ? 'Not set' : df.format(_arrival!),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _costController,
                 decoration: const InputDecoration(labelText: 'Cost (optional)'),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return null;
                   final n = double.tryParse(v.trim());
@@ -260,8 +274,9 @@ class _TransportFormSheetState extends State<TransportFormSheet> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _notesController,
-                decoration:
-                    const InputDecoration(labelText: 'Notes (optional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Notes (optional)',
+                ),
                 maxLines: 2,
               ),
               const SizedBox(height: 28),

@@ -9,13 +9,17 @@ final itineraryRepositoryProvider = Provider<ItineraryRepository>((ref) {
 });
 
 /// Streams the trip's itinerary days, ordered by date.
-final itineraryDaysProvider =
-    StreamProvider.family<List<ItineraryDay>, int>((ref, tripId) {
+final itineraryDaysProvider = StreamProvider.family<List<ItineraryDay>, int>((
+  ref,
+  tripId,
+) {
   return ref.watch(itineraryRepositoryProvider).watchDays(tripId);
 });
 
 /// Streams a single day's activities, ordered by time.
-final dayActivitiesProvider =
-    StreamProvider.family<List<Activity>, int>((ref, dayId) {
+final dayActivitiesProvider = StreamProvider.family<List<Activity>, int>((
+  ref,
+  dayId,
+) {
   return ref.watch(itineraryRepositoryProvider).watchActivities(dayId);
 });

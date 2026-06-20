@@ -9,7 +9,9 @@ final transportRepositoryProvider = Provider<TransportRepository>((ref) {
 });
 
 /// Streams the trip's transport legs, ordered by departure date/time.
-final transportsProvider =
-    StreamProvider.family<List<Transport>, int>((ref, tripId) {
+final transportsProvider = StreamProvider.family<List<Transport>, int>((
+  ref,
+  tripId,
+) {
   return ref.watch(transportRepositoryProvider).watchForTrip(tripId);
 });

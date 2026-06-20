@@ -63,13 +63,17 @@ class _AccommodationFormSheetState extends State<AccommodationFormSheet> {
     final a = widget.existing;
     _nameController = TextEditingController(text: a?.name);
     _cityController = TextEditingController(text: a?.city);
-    _costController =
-        TextEditingController(text: a == null ? '' : _trim(a.cost));
+    _costController = TextEditingController(
+      text: a == null ? '' : _trim(a.cost),
+    );
     _refController = TextEditingController(text: a?.bookingReference);
     _notesController = TextEditingController(text: a?.notes);
     final base = widget.initialDate ?? DateTime.now();
-    _checkIn = AppDateUtils.clamp(a?.checkIn ?? base,
-        min: widget.tripStart, max: widget.tripEnd);
+    _checkIn = AppDateUtils.clamp(
+      a?.checkIn ?? base,
+      min: widget.tripStart,
+      max: widget.tripEnd,
+    );
     _checkOut = a?.checkOut ?? _checkIn.add(const Duration(days: 1));
   }
 
@@ -153,10 +157,9 @@ class _AccommodationFormSheetState extends State<AccommodationFormSheet> {
             children: [
               Text(
                 isEdit ? 'Edit Accommodation' : 'Add Accommodation',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 20),
               TextFormField(
@@ -190,8 +193,10 @@ class _AccommodationFormSheetState extends State<AccommodationFormSheet> {
                       child: InputDecorator(
                         decoration: const InputDecoration(
                           labelText: 'Check-in',
-                          suffixIcon:
-                              Icon(Icons.calendar_today_outlined, size: 18),
+                          suffixIcon: Icon(
+                            Icons.calendar_today_outlined,
+                            size: 18,
+                          ),
                         ),
                         child: Text(df.format(_checkIn)),
                       ),
@@ -204,8 +209,10 @@ class _AccommodationFormSheetState extends State<AccommodationFormSheet> {
                       child: InputDecorator(
                         decoration: const InputDecoration(
                           labelText: 'Check-out',
-                          suffixIcon:
-                              Icon(Icons.calendar_today_outlined, size: 18),
+                          suffixIcon: Icon(
+                            Icons.calendar_today_outlined,
+                            size: 18,
+                          ),
                         ),
                         child: Text(df.format(_checkOut)),
                       ),
@@ -222,8 +229,9 @@ class _AccommodationFormSheetState extends State<AccommodationFormSheet> {
               TextFormField(
                 controller: _costController,
                 decoration: const InputDecoration(labelText: 'Cost (optional)'),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return null;
                   final n = double.tryParse(v.trim());
@@ -242,8 +250,9 @@ class _AccommodationFormSheetState extends State<AccommodationFormSheet> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _notesController,
-                decoration:
-                    const InputDecoration(labelText: 'Notes (optional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Notes (optional)',
+                ),
                 maxLines: 2,
               ),
               const SizedBox(height: 28),

@@ -1,10 +1,13 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../trips/providers/trip_providers.dart';
 import '../providers/itinerary_providers.dart';
@@ -22,9 +25,19 @@ class ItineraryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final days = ref.watch(itineraryDaysProvider(tripId));
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Itinerary')),
-      body: days.when(
+    return AppScaffold(
+      title: 'Itinerary',
+      footer: days.maybeWhen(
+        data: (list) => list.isEmpty
+            ? null
+            : FButton(
+                onPress: () => _addDay(context, ref, list),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Day'),
+              ),
+        orElse: () => null,
+      ),
+      child: days.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (list) {
@@ -33,33 +46,20 @@ class ItineraryScreen extends ConsumerWidget {
               icon: Icons.event_note_outlined,
               title: 'No days planned yet',
               message: 'Add a day, then fill it with activities.',
-              action: FilledButton.icon(
-                onPressed: () => _addDay(context, ref, list),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Day'),
+              action: FButton(
+                onPress: () => _addDay(context, ref, list),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Day'),
               ),
             );
           }
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             itemCount: list.length,
-            itemBuilder: (context, i) => _DaySection(
-              tripId: tripId,
-              day: list[i],
-              dayNumber: i + 1,
-            ),
+            itemBuilder: (context, i) =>
+                _DaySection(tripId: tripId, day: list[i], dayNumber: i + 1),
           );
         },
-      ),
-      floatingActionButton: days.maybeWhen(
-        data: (list) => list.isEmpty
-            ? null
-            : FloatingActionButton.extended(
-                onPressed: () => _addDay(context, ref, list),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Day'),
-              ),
-        orElse: () => null,
       ),
     );
   }
@@ -80,7 +80,9 @@ class ItineraryScreen extends ConsumerWidget {
       ),
     );
     if (result == null) return;
-    await ref.read(itineraryRepositoryProvider).addDay(
+    await ref
+        .read(itineraryRepositoryProvider)
+        .addDay(
           tripId: tripId,
           date: result.date,
           title: result.title,
@@ -115,94 +117,88 @@ class _DaySection extends ConsumerWidget {
     final activities = ref.watch(dayActivitiesProvider(day.id));
     final df = DateFormat('EEE, d MMM');
 
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      color: AppColors.card,
-      child: Padding(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: AppCard(
+        margin: EdgeInsets.zero,
         padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Day $dayNumber  •  ${df.format(day.date)}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelMedium
-                            ?.copyWith(
-                              color: AppColors.primaryAccent,
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        day.title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
+        child: Padding(
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Day $dayNumber  •  ${df.format(day.date)}',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: AppColors.primaryAccent,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          day.title,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, size: 20),
+                    onSelected: (v) {
+                      if (v == 'edit') _editDay(context, ref);
+                      if (v == 'delete') _deleteDay(context, ref);
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(value: 'edit', child: Text('Edit day')),
+                      PopupMenuItem(value: 'delete', child: Text('Delete day')),
                     ],
                   ),
-                ),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, size: 20),
-                  onSelected: (v) {
-                    if (v == 'edit') _editDay(context, ref);
-                    if (v == 'delete') _deleteDay(context, ref);
-                  },
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(value: 'edit', child: Text('Edit day')),
-                    PopupMenuItem(value: 'delete', child: Text('Delete day')),
-                  ],
+                ],
+              ),
+              if (day.notes != null && day.notes!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Text(
+                    day.notes!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.cSecondaryText,
+                    ),
+                  ),
                 ),
               ],
-            ),
-            if (day.notes != null && day.notes!.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Text(
-                  day.notes!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.secondaryText,
+              const SizedBox(height: 8),
+              activities.maybeWhen(
+                data: (acts) => Column(
+                  children: [
+                    for (final a in acts)
+                      _ActivityTile(
+                        activity: a,
+                        onEdit: () => _editActivity(context, ref, a),
+                        onDelete: () => _deleteActivity(context, ref, a),
                       ),
+                  ],
+                ),
+                orElse: () => const SizedBox.shrink(),
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () => _addActivity(context, ref),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add activity'),
                 ),
               ),
             ],
-            const SizedBox(height: 8),
-            activities.maybeWhen(
-              data: (acts) => Column(
-                children: [
-                  for (final a in acts)
-                    _ActivityTile(
-                      activity: a,
-                      onEdit: () => _editActivity(context, ref, a),
-                      onDelete: () => _deleteActivity(context, ref, a),
-                    ),
-                ],
-              ),
-              orElse: () => const SizedBox.shrink(),
-            ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () => _addActivity(context, ref),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add activity'),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -220,7 +216,9 @@ class _DaySection extends ConsumerWidget {
       ),
     );
     if (result == null) return;
-    await ref.read(itineraryRepositoryProvider).updateDay(
+    await ref
+        .read(itineraryRepositoryProvider)
+        .updateDay(
           day.copyWith(
             date: result.date,
             title: result.title,
@@ -247,7 +245,9 @@ class _DaySection extends ConsumerWidget {
       builder: (_) => ActivityFormSheet(dayDate: day.date),
     );
     if (result == null) return;
-    await ref.read(itineraryRepositoryProvider).addActivity(
+    await ref
+        .read(itineraryRepositoryProvider)
+        .addActivity(
           ActivitiesCompanion.insert(
             itineraryDayId: day.id,
             title: result.title,
@@ -270,7 +270,9 @@ class _DaySection extends ConsumerWidget {
       builder: (_) => ActivityFormSheet(dayDate: day.date, existing: activity),
     );
     if (result == null) return;
-    await ref.read(itineraryRepositoryProvider).updateActivity(
+    await ref
+        .read(itineraryRepositoryProvider)
+        .updateActivity(
           activity.copyWith(
             title: result.title,
             location: Value(result.location),
@@ -314,8 +316,10 @@ class _ActivityTile extends StatelessWidget {
       if (activity.location != null && activity.location!.isNotEmpty)
         activity.location!,
       if (activity.estimatedCost != null)
-        NumberFormat.currency(symbol: '~', decimalDigits: 0)
-            .format(activity.estimatedCost),
+        NumberFormat.currency(
+          symbol: '~',
+          decimalDigits: 0,
+        ).format(activity.estimatedCost),
     ];
 
     return Padding(
@@ -330,9 +334,9 @@ class _ActivityTile extends StatelessWidget {
               child: Text(
                 formatActivityTime(context, activity.time),
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: AppColors.warmAccent,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: AppColors.warmAccent,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
@@ -345,8 +349,8 @@ class _ActivityTile extends StatelessWidget {
                   Text(
                     subtitleParts.join('  •  '),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.secondaryText,
-                        ),
+                      color: context.cSecondaryText,
+                    ),
                   ),
               ],
             ),

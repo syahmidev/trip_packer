@@ -1,10 +1,13 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../trips/providers/trip_providers.dart';
 import '../providers/accommodation_providers.dart';
@@ -21,9 +24,19 @@ class AccommodationScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stays = ref.watch(accommodationsProvider(tripId));
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Accommodation')),
-      body: stays.when(
+    return AppScaffold(
+      title: 'Accommodation',
+      footer: stays.maybeWhen(
+        data: (list) => list.isEmpty
+            ? null
+            : FButton(
+                onPress: () => _openForm(context, ref),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Accommodation'),
+              ),
+        orElse: () => null,
+      ),
+      child: stays.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (list) {
@@ -32,15 +45,15 @@ class AccommodationScreen extends ConsumerWidget {
               icon: Icons.hotel_outlined,
               title: 'No bookings yet',
               message: 'Add the hostels and hotels you have booked.',
-              action: FilledButton.icon(
-                onPressed: () => _openForm(context, ref),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Accommodation'),
+              action: FButton(
+                onPress: () => _openForm(context, ref),
+                prefix: const Icon(Icons.add),
+                child: const Text('Add Accommodation'),
               ),
             );
           }
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             itemCount: list.length,
             itemBuilder: (context, i) => _AccommodationCard(
               stay: list[i],
@@ -49,16 +62,6 @@ class AccommodationScreen extends ConsumerWidget {
             ),
           );
         },
-      ),
-      floatingActionButton: stays.maybeWhen(
-        data: (list) => list.isEmpty
-            ? null
-            : FloatingActionButton.extended(
-                onPressed: () => _openForm(context, ref),
-                icon: const Icon(Icons.add),
-                label: const Text('Add'),
-              ),
-        orElse: () => null,
       ),
     );
   }
@@ -153,82 +156,72 @@ class _AccommodationCard extends StatelessWidget {
     final nights = stay.checkOut.difference(stay.checkIn).inDays;
     final hasCost = stay.cost > 0;
 
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      color: AppColors.card,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(top: 2, right: 14),
-              child: Icon(Icons.hotel_outlined, color: AppColors.primaryAccent),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    stay.name,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(14, 14, 6, 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const AppIconChip(icon: Icons.hotel_outlined),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  stay.name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    stay.city,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.secondaryText,
-                        ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  stay.city,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: context.cSecondaryText,
                   ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${df.format(stay.checkIn)} → ${df.format(stay.checkOut)}'
+                  '  •  $nights night${nights == 1 ? '' : 's'}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                if (hasCost || stay.bookingReference != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    '${df.format(stay.checkIn)} → ${df.format(stay.checkOut)}'
-                    '  •  $nights night${nights == 1 ? '' : 's'}',
+                    [
+                      if (hasCost)
+                        NumberFormat.currency(
+                          symbol: '',
+                          decimalDigits: 0,
+                        ).format(stay.cost),
+                      if (stay.bookingReference != null)
+                        'Ref: ${stay.bookingReference}',
+                    ].join('  •  '),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  if (hasCost || stay.bookingReference != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      [
-                        if (hasCost)
-                          NumberFormat.currency(symbol: '', decimalDigits: 0)
-                              .format(stay.cost),
-                        if (stay.bookingReference != null)
-                          'Ref: ${stay.bookingReference}',
-                      ].join('  •  '),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                  if (stay.notes != null && stay.notes!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      stay.notes!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.secondaryText,
-                          ),
-                    ),
-                  ],
                 ],
-              ),
-            ),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, size: 20),
-              onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit')),
-                PopupMenuItem(value: 'delete', child: Text('Delete')),
+                if (stay.notes != null && stay.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    stay.notes!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.cSecondaryText,
+                    ),
+                  ),
+                ],
               ],
             ),
-          ],
-        ),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'edit', child: Text('Edit')),
+              PopupMenuItem(value: 'delete', child: Text('Delete')),
+            ],
+          ),
+        ],
       ),
     );
   }

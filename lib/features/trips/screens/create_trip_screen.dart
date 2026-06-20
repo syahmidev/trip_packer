@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/categories.dart';
 import '../../../core/database/app_database.dart';
+import '../../../core/widgets/app_scaffold.dart';
 import '../providers/trip_providers.dart';
 
 /// Create Trip form (plan Phase 3). Inserts a real row via Drift.
@@ -94,12 +96,12 @@ class _CreateTripScreenState extends ConsumerState<CreateTripScreen> {
   Widget build(BuildContext context) {
     final df = DateFormat('d MMM yyyy');
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Create Trip')),
-      body: Form(
+    return AppScaffold(
+      title: 'Create Trip',
+      child: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           children: [
             TextFormField(
               controller: _titleController,
@@ -148,8 +150,9 @@ class _CreateTripScreenState extends ConsumerState<CreateTripScreen> {
                 labelText: 'Estimated budget',
                 prefixText: '$_currency ',
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return null;
                 final n = double.tryParse(v.trim());
@@ -165,8 +168,8 @@ class _CreateTripScreenState extends ConsumerState<CreateTripScreen> {
               maxLines: 3,
             ),
             const SizedBox(height: 28),
-            FilledButton(
-              onPressed: _saving ? null : _save,
+            FButton(
+              onPress: _saving ? null : _save,
               child: _saving
                   ? const SizedBox(
                       height: 20,
@@ -183,7 +186,11 @@ class _CreateTripScreenState extends ConsumerState<CreateTripScreen> {
 }
 
 class _DateField extends StatelessWidget {
-  const _DateField({required this.label, required this.value, required this.onTap});
+  const _DateField({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
 
   final String label;
   final String? value;

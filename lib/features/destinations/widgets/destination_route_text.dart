@@ -9,7 +9,11 @@ import '../providers/destination_providers.dart';
 /// Reads the live `destinations` stream so it stays in sync as the route is
 /// edited. Renders nothing when the trip has no destinations yet.
 class DestinationRouteText extends ConsumerWidget {
-  const DestinationRouteText({required this.tripId, this.maxLines = 1, super.key});
+  const DestinationRouteText({
+    required this.tripId,
+    this.maxLines = 1,
+    super.key,
+  });
 
   final int tripId;
   final int maxLines;
@@ -26,9 +30,9 @@ class DestinationRouteText extends ConsumerWidget {
           route,
           maxLines: maxLines,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.secondaryText,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.secondaryText),
         );
       },
       orElse: () => const SizedBox.shrink(),
