@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_gradients.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -101,7 +102,7 @@ class _TripCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _GradientAvatar(letter: initial),
+          _GradientAvatar(letter: initial, seed: trip.id),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -163,9 +164,10 @@ class _TripCard extends StatelessWidget {
 
 /// Rounded gradient tile showing a trip's initial — stands in for cover imagery.
 class _GradientAvatar extends StatelessWidget {
-  const _GradientAvatar({required this.letter});
+  const _GradientAvatar({required this.letter, required this.seed});
 
   final String letter;
+  final int seed;
 
   @override
   Widget build(BuildContext context) {
@@ -175,11 +177,7 @@ class _GradientAvatar extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF357A72), Color(0xFF1E4A45)],
-        ),
+        gradient: AppGradients.of(seed),
       ),
       child: Text(
         letter,

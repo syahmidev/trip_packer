@@ -4,10 +4,10 @@ import '../theme/app_colors.dart';
 
 /// Airbnb-style surface (plan Phase 11 — Forui restyle / visual polish).
 ///
-/// Soft shadow instead of a hard border, large radius, and an ink ripple when
-/// [onTap] is set. Theme-aware: a subtle shadow in light mode, a hairline
-/// border in dark mode where shadows read poorly.
-class AppCard extends StatelessWidget {
+/// Soft shadow instead of a hard border, large radius, an ink ripple and a
+/// subtle press-scale when [onTap] is set. Theme-aware: a soft shadow in light
+/// mode, a hairline border in dark mode where shadows read poorly.
+class AppCard extends StatefulWidget {
   const AppCard({
     required this.child,
     this.padding = const EdgeInsets.all(18),
@@ -24,47 +24,74 @@ class AppCard extends StatelessWidget {
   final double radius;
 
   @override
+  State<AppCard> createState() => _AppCardState();
+}
+
+class _AppCardState extends State<AppCard> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (widget.onTap == null || _pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderRadius = BorderRadius.circular(radius);
+    final borderRadius = BorderRadius.circular(widget.radius);
 
-    return Padding(
-      padding: margin,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: borderRadius,
-          boxShadow: isDark
-              ? null
-              : const [
-                  BoxShadow(
-                    color: Color(0x14111827), // ~8% slate
-                    blurRadius: 24,
-                    offset: Offset(0, 8),
-                  ),
-                  BoxShadow(
-                    color: Color(0x0A111827), // faint ambient
-                    blurRadius: 2,
-                    offset: Offset(0, 1),
-                  ),
-                ],
-        ),
-        child: Material(
-          color: context.cCard,
-          borderRadius: borderRadius,
-          clipBehavior: Clip.antiAlias,
-          shape: isDark
-              ? RoundedRectangleBorder(
-                  borderRadius: borderRadius,
-                  side: BorderSide(color: context.cBorder),
-                )
-              : null,
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(padding: padding, child: child),
-          ),
+    Widget surface = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        boxShadow: isDark
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x14111827), // ~8% slate
+                  blurRadius: 24,
+                  offset: Offset(0, 8),
+                ),
+                BoxShadow(
+                  color: Color(0x0A111827), // faint ambient
+                  blurRadius: 2,
+                  offset: Offset(0, 1),
+                ),
+              ],
+      ),
+      child: Material(
+        color: context.cCard,
+        borderRadius: borderRadius,
+        clipBehavior: Clip.antiAlias,
+        shape: isDark
+            ? RoundedRectangleBorder(
+                borderRadius: borderRadius,
+                side: BorderSide(color: context.cBorder),
+              )
+            : null,
+        child: InkWell(
+          onTap: widget.onTap,
+          child: Padding(padding: widget.padding, child: widget.child),
         ),
       ),
     );
+
+    if (widget.onTap != null) {
+      // Listener is passive — it reads pointer events for the press-scale
+      // without claiming the gesture, so InkWell still fires the tap + ripple.
+      surface = Listener(
+        onPointerDown: (_) => _setPressed(true),
+        onPointerUp: (_) => _setPressed(false),
+        onPointerCancel: (_) => _setPressed(false),
+        child: AnimatedScale(
+          scale: _pressed ? 0.97 : 1.0,
+          duration: const Duration(milliseconds: 110),
+          curve: Curves.easeOut,
+          child: surface,
+        ),
+      );
+    }
+
+    return Padding(padding: widget.margin, child: surface);
   }
 }
 
